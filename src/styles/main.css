@@ -256,6 +256,12 @@ a { color: inherit; }
 .chat-header { display: flex; justify-content: space-between; align-items: center; }
 .chat-header h2 { margin: 5px 0 4px; color: #435544; font: 500 17px 'Noto Serif SC', serif; }
 .chat-header p { margin: 0; color: #707b70; font-size: 12px; }
+.chat-heading { display: flex; align-items: center; gap: 12px; }
+.chat-mascot { flex: 0 0 auto; }
+.chat-empty { display: flex; align-items: center; gap: 14px; margin: 18px 0; padding: 14px 16px; background: #fafbf9; border: 1px dashed #e2e9dd; border-radius: 7px; }
+.chat-empty p { margin: 0; color: #6b7869; font-size: 12px; line-height: 1.7; }
+.message-avatar.mascot-avatar { background: transparent; }
+.profile-mascot { flex: 0 0 auto; }
 .chat-messages { display: grid; gap: 13px; max-height: 350px; overflow-y: auto; margin: 18px 0; padding: 15px; background: #fafbf9; border: 1px solid #eff2ed; border-radius: 7px; }
 .chat-message { display: flex; align-items: flex-start; gap: 9px; }
 .message-avatar { display: grid; flex: 0 0 auto; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: #567454; background: #edf3eb; font-size: 12px; }
