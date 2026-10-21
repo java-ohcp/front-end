@@ -8,7 +8,11 @@ export interface ChatMessage {
   details?: Array<{ label: string; value: string }>
 }
 
-export function useChat(getSessionId: () => string | undefined, onSessionId?: (sessionId: string) => void) {
+export function useChat(
+  getSessionId: () => string | undefined,
+  onSessionId?: (sessionId: string) => void,
+  getContext?: () => { crop?: string; symptomText?: string },
+) {
   const chatMessages = ref<ChatMessage[]>([])
   const chatInput = ref('')
   const chatSending = ref(false)
@@ -18,6 +22,7 @@ export function useChat(getSessionId: () => string | undefined, onSessionId?: (s
     const question = chatInput.value.trim()
     const sessionId = getSessionId()
     if (!question || chatSending.value || !sessionId) return
+    const context = getContext?.()
     chatMessages.value.push({ role: 'user', text: question })
     const answer: ChatMessage = { role: 'assistant', text: '', status: 'streaming' }
     chatMessages.value.push(answer)
@@ -26,7 +31,7 @@ export function useChat(getSessionId: () => string | undefined, onSessionId?: (s
     const current = new AbortController()
     controller = current
     try {
-      await streamChat({ sessionId, question }, ({ event, data }) => {
+      await streamChat({ sessionId, question, crop: context?.crop, symptomText: context?.symptomText }, ({ event, data }) => {
         if (event === 'meta' && typeof data === 'object' && data && 'sessionId' in data && typeof data.sessionId === 'string') onSessionId?.(data.sessionId)
         if (event === 'token') {
           const chunk = data as { delta?: string; data?: { delta?: string } }

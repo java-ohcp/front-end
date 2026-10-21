@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { fetchKnowledge } from '../api'
 import { confidencePercent, safeHttpUrl } from '../api/links'
+import AgentMascot from '../components/AgentMascot.vue'
 import KnowledgeCard from '../components/KnowledgeCard.vue'
 import PhotoUpload from '../components/PhotoUpload.vue'
 import { useDiagnosis, type DiagnosisForm } from '../composables/useDiagnosis'
@@ -28,6 +29,7 @@ const {
 } = useChat(
   () => result.value?.sessionId,
   (sessionId) => { if (result.value) result.value.sessionId = sessionId },
+  () => ({ crop: form.crop, symptomText: form.symptomText }),
 )
 const chars = computed(() => form.symptomText.trim().length)
 
@@ -193,10 +195,34 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
     </div>
 
     <section v-if="result?.sessionId && result.decision === 'CONFIRMED'" class="panel chat-panel">
-      <div class="chat-header"><div><span class="eyebrow">CONTINUE THE CONVERSATION</span><h2>继续追问</h2><p>基于本次诊断继续了解田间管理问题</p></div><button v-if="chatMessages.length" class="text-button" type="button" @click="resetChat">清空对话</button></div>
-      <div v-if="chatMessages.length" class="chat-messages" aria-live="polite"><div v-for="(message, index) in chatMessages" :key="index" class="chat-message" :class="message.role"><span class="message-avatar">{{ message.role === 'user' ? '我' : '禾' }}</span><div class="message-body"><span class="message-role">{{ message.role === 'user' ? '你' : '禾诊助手' }}</span><p>{{ message.text || (message.status === 'streaming' ? '正在组织回答…' : '') }}</p><details v-for="(detail, detailIndex) in message.details || []" :key="detailIndex" class="chat-detail"><summary>{{ detail.label }}</summary><pre>{{ detail.value }}</pre></details><small v-if="message.status === 'interrupted'">已停止，保留已收到内容</small><small v-if="message.status === 'error'">连接中断</small></div></div></div>
+      <div class="chat-header">
+        <div class="chat-heading">
+          <AgentMascot :size="46" state="idle" decorative class="chat-mascot" />
+          <div><span class="eyebrow">CONTINUE THE CONVERSATION</span><h2>继续追问</h2><p>禾禾基于本次诊断继续了解田间管理问题</p></div>
+        </div>
+        <button v-if="chatMessages.length" class="text-button" type="button" @click="resetChat">清空对话</button>
+      </div>
+      <div v-if="!chatMessages.length" class="chat-empty">
+        <AgentMascot :size="54" state="idle" decorative />
+        <p>诊断完成了。追肥用量、施用时机或注意事项，都可以问我。</p>
+      </div>
+      <div v-if="chatMessages.length" class="chat-messages" aria-live="polite">
+        <div v-for="(message, index) in chatMessages" :key="index" class="chat-message" :class="message.role">
+          <span class="message-avatar" :class="{ 'mascot-avatar': message.role === 'assistant' }">
+            <template v-if="message.role === 'user'">我</template>
+            <AgentMascot v-else :size="24" :state="message.status === 'streaming' ? 'thinking' : 'idle'" decorative />
+          </span>
+          <div class="message-body">
+            <span class="message-role">{{ message.role === 'user' ? '你' : '禾禾' }}</span>
+            <p>{{ message.text || (message.status === 'streaming' ? '正在组织回答…' : '') }}</p>
+            <details v-for="(detail, detailIndex) in message.details || []" :key="detailIndex" class="chat-detail"><summary>{{ detail.label }}</summary><pre>{{ detail.value }}</pre></details>
+            <small v-if="message.status === 'interrupted'">已停止，保留已收到内容</small>
+            <small v-if="message.status === 'error'">连接中断</small>
+          </div>
+        </div>
+      </div>
       <form class="chat-composer" @submit.prevent="sendChat"><el-input v-model="chatInput" placeholder="还有什么想了解的？" :disabled="chatSending" maxlength="300" @keydown.enter.exact.prevent="sendChat" /><button v-if="chatSending" class="stop-chat" type="button" @click="stopChat">停止</button><button v-else class="send-chat" type="submit" :disabled="!chatInput.trim()">发送 <span>↑</span></button></form>
-      <div class="chat-footnote">回复由后端服务生成，请结合实际田间情况判断</div>
+      <div class="chat-footnote">禾禾的回复由后端服务生成，请结合实际田间情况判断</div>
     </section>
 
     <el-drawer v-model="knowledgeVisible" title="营养元素科普" size="min(520px, 94vw)" destroy-on-close>

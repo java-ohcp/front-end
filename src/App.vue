@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
+import AgentMascot from './components/AgentMascot.vue'
 import { fetchHealth, isMockEnabled, type HealthResponse } from './api'
 
 const route = useRoute()
@@ -54,7 +55,7 @@ onBeforeUnmount(() => healthController?.abort())
           <p>先观察，再判断。<br>每一片叶子都有线索。</p>
           <span class="note-sprig">✳</span>
         </div>
-        <div class="rail-profile"><div class="profile-avatar">农</div><div><strong>农技工作台</strong><small>作物营养助手</small></div><span class="more-dots">···</span></div>
+        <div class="rail-profile"><AgentMascot :size="33" decorative class="profile-mascot" /><div><strong>禾禾</strong><small>作物营养助手</small></div><span class="more-dots">···</span></div>
       </div>
     </aside>
 
