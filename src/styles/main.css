@@ -125,6 +125,7 @@ a { color: inherit; }
 .el-textarea__inner:focus { border-color: #9db39a; }
 .textarea-meta { display: flex; justify-content: space-between; margin-top: 5px; color: #707b70; font-size: 12px; }
 .count-warning { color: #ae695b; }
+.photo-observe-tip { margin: -5px 0 18px; padding: 10px 12px; border-left: 2px solid #8fab80; color: #61745b; background: #f1f6ed; font-size: 12px; line-height: 1.8; }
 .disclosure-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 1px; border: 0; border-top: 1px solid #edf0eb; border-bottom: 1px solid #edf0eb; background: transparent; text-align: left; cursor: pointer; }
 .disclosure-symbol { display: grid; place-items: center; width: 24px; height: 24px; color: #678168; background: #edf3eb; border-radius: 7px; font-size: 19px; }
 .disclosure-row strong { display: block; color: #566356; font-size: var(--type-label); font-weight: 600; }
