@@ -43,4 +43,11 @@ describe('parseSseStream', () => {
 
     expect(events).toEqual([{ event: 'done', data: '{}' }])
   })
+
+  it('emits heartbeat comments so the consumer can reset its idle timer', async () => {
+    const events = []
+    for await (const event of parseSseStream(streamFrom([': ping\n\n']))) events.push(event)
+
+    expect(events).toEqual([{ event: 'ping', data: '' }])
+  })
 })

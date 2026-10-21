@@ -7,11 +7,7 @@ const route = useRoute()
 const health = ref<HealthResponse>()
 const healthError = ref(false)
 let healthController: AbortController | undefined
-const activeTitle = computed(() => {
-  if (route.path === '/knowledge') return '营养知识库'
-  if (route.path === '/dashboard') return '服务与数据'
-  return '作物智能诊断'
-})
+const activeTitle = computed(() => String(route.meta.title || '智能诊断'))
 
 async function checkHealth() {
   healthController?.abort()
@@ -38,13 +34,13 @@ onBeforeUnmount(() => healthController?.abort())
 
       <div class="rail-caption">工作台</div>
       <nav class="main-nav" aria-label="主导航">
-        <RouterLink to="/" class="nav-link" :class="{ active: route.path === '/' }">
+        <RouterLink to="/" class="nav-link" :class="{ active: route.meta.nav === 'diagnose' }">
           <span class="nav-icon">◉</span><span>智能诊断</span><span class="nav-current">→</span>
         </RouterLink>
-        <RouterLink to="/knowledge" class="nav-link" :class="{ active: route.path === '/knowledge' }">
+        <RouterLink to="/knowledge" class="nav-link" :class="{ active: route.meta.nav === 'knowledge' }">
           <span class="nav-icon">✳</span><span>营养知识</span>
         </RouterLink>
-        <RouterLink to="/dashboard" class="nav-link" :class="{ active: route.path === '/dashboard' }">
+        <RouterLink to="/dashboard" class="nav-link" :class="{ active: route.meta.nav === 'dashboard' }">
           <span class="nav-icon">▥</span><span>服务看板</span>
         </RouterLink>
       </nav>

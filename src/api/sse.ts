@@ -7,8 +7,10 @@ function decodeFrame(frame: string): SseEvent | undefined {
   let event = 'message'
   const data: string[] = []
 
+  let heartbeat = false
   for (const line of frame.split(/\r?\n/)) {
-    if (!line || line.startsWith(':')) continue
+    if (!line) continue
+    if (line.startsWith(':')) { heartbeat = true; continue }
     const separator = line.indexOf(':')
     const field = separator < 0 ? line : line.slice(0, separator)
     const value = separator < 0 ? '' : line.slice(separator + 1).replace(/^ /, '')
@@ -16,7 +18,7 @@ function decodeFrame(frame: string): SseEvent | undefined {
     if (field === 'data') data.push(value)
   }
 
-  if (data.length === 0) return undefined
+  if (data.length === 0) return heartbeat ? { event: 'ping', data: '' } : undefined
   return { event, data: data.join('\n') }
 }
 

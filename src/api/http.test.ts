@@ -26,6 +26,14 @@ describe('requestJson', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
+  it('does not replay an unsafe request after code 2001', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ code: 2001, message: 'busy' }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(requestJson('/knowledge/reload', { method: 'POST' })).rejects.toMatchObject({ code: 2001 })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps trace IDs compact for user-facing diagnostics', () => {
     expect(visibleTraceId('request-trace-12345678')).toBe('12345678')
     expect(visibleTraceId('short')).toBeUndefined()

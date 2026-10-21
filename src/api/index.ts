@@ -90,7 +90,8 @@ export async function streamChat(
 
     for await (const message of parseSseStream(response.body, combinedSignal)) {
       resetIdleTimer()
-      if (!KNOWN_CHAT_EVENTS.has(message.event) || message.event === 'ping') continue
+      if (message.event === 'ping') continue
+      if (!KNOWN_CHAT_EVENTS.has(message.event)) continue
       let data: unknown = message.data
       try { data = JSON.parse(message.data) } catch { /* text events may carry plain strings */ }
       onEvent({ event: message.event, data })

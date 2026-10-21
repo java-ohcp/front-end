@@ -26,11 +26,18 @@ export function isMockEnabled(): boolean {
 
 function pause(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(resolve, ms)
-    signal?.addEventListener('abort', () => {
-      clearTimeout(timer)
+    if (signal?.aborted) {
       reject(signal.reason)
-    }, { once: true })
+      return
+    }
+    const cleanup = () => signal?.removeEventListener('abort', onAbort)
+    const timer = setTimeout(() => { cleanup(); resolve() }, ms)
+    const onAbort = () => {
+      clearTimeout(timer)
+      cleanup()
+      reject(signal?.reason)
+    }
+    signal?.addEventListener('abort', onAbort, { once: true })
   })
 }
 
@@ -61,7 +68,7 @@ export async function requestJson<T>(path: string, options: RequestOptions = {})
           typeof payload?.traceId === 'string' ? payload.traceId : undefined,
           response.status,
         )
-        if (attempt === 0 && (code === 2001 || (retrySafe && RETRYABLE_CODES.has(code ?? -1)))) {
+        if (attempt === 0 && ((code === 2001 && retrySafe) || (retrySafe && RETRYABLE_CODES.has(code ?? -1)))) {
           attempt += 1
           await pause(code === 2001 ? 3000 : 500, signal)
           continue

@@ -1,4 +1,4 @@
-import { computed, ref, type UnwrapNestedRefs } from 'vue'
+import { computed, ref, watch, type UnwrapNestedRefs } from 'vue'
 import { ElMessage } from 'element-plus'
 import { ApiError, diagnose, fetchAdvice, visibleTraceId, type AdviceResponse, type DiagnosisResponse, type DiagnoseField } from '../api'
 
@@ -32,6 +32,17 @@ export function useDiagnosis(form: ReactiveDiagnosisForm) {
   let diagnoseController: AbortController | undefined
   let adviceController: AbortController | undefined
   let retryTimer: ReturnType<typeof setInterval> | undefined
+
+  watch(() => form.crop, (crop, previousCrop) => {
+    if (crop === previousCrop) return
+    diagnoseController?.abort()
+    adviceController?.abort()
+    result.value = undefined
+    advice.value = undefined
+    loading.value = false
+    adviceLoading.value = false
+    adviceError.value = false
+  })
 
   function clearError() { errorText.value = ''; trace.value = undefined }
 
@@ -104,8 +115,12 @@ export function useDiagnosis(form: ReactiveDiagnosisForm) {
         mode: nextForm.mode,
       }, controller.signal)
       if (controller.signal.aborted) return
-      if (!['CONFIRMED', 'NEED_MORE_INFO', 'NO_MATCH'].includes(response.decision)) {
+      if (!response || typeof response !== 'object' || !['CONFIRMED', 'NEED_MORE_INFO', 'NO_MATCH'].includes(response.decision)) {
         errorText.value = '收到暂不支持的结果格式，请稍后重试。'
+        return
+      }
+      if (response.decision === 'CONFIRMED' && !response.candidates?.some((candidate) => typeof candidate?.element === 'string' && candidate.element.trim())) {
+        errorText.value = '诊断响应缺少有效候选，请检查服务响应后重试。'
         return
       }
       result.value = { ...response, candidates: response.candidates?.slice(0, 3) ?? [] }
@@ -133,7 +148,10 @@ export function useDiagnosis(form: ReactiveDiagnosisForm) {
     const field = option.expectedField as DiagnoseField | undefined
     const allowed: DiagnoseField[] = ['part', 'leafAge', 'env', 'soil', 'stage']
     if (field && allowed.includes(field)) form[field] = option.value
-    else form.symptomText = `${form.symptomText.trim()}；补充信息：${option.label}`
+    else {
+      form.symptomText = `${form.symptomText.trim()}；补充信息：${option.value}`
+      ElMessage.info(`收到未识别的补充字段“${option.expectedField || '未提供'}”，已将答案附加到症状描述。`)
+    }
   }
 
   function reset() {

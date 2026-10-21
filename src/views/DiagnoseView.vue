@@ -148,7 +148,7 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
         <div v-else-if="isNoMatch" class="no-match-result">
           <span class="decision-badge no-match"><i></i> 暂无匹配</span>
           <h3>当前线索还不足以匹配到明确原因。</h3>
-          <p>请补充田间照片或近期环境变化，并咨询当地农技人员。系统不会基于此结果给出施肥用量。</p>
+          <p>{{ result?.followUp?.question || '请补充更多田间表现或近期环境变化，并咨询当地农技人员。' }} 系统不会基于此结果给出施肥用量。</p>
           <div class="no-match-note">✳ 保留当前描述，补充更多信息后可以再次诊断。</div>
         </div>
 
