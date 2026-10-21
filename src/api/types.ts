@@ -78,4 +78,7 @@ export interface ApiEnvelope<T> {
 export interface ChatRequest {
   sessionId: string
   question: string
+  /** 本次诊断的上下文，追问时一并带上，避免后端把症状重新问一遍。 */
+  crop?: string
+  symptomText?: string
 }
