@@ -194,17 +194,17 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
       </section>
     </div>
 
-    <section v-if="result?.sessionId && result.decision === 'CONFIRMED'" class="panel chat-panel">
+    <section v-if="result?.sessionId" class="panel chat-panel">
       <div class="chat-header">
         <div class="chat-heading">
           <AgentMascot :size="46" state="idle" decorative class="chat-mascot" />
-          <div><span class="eyebrow">CONTINUE THE CONVERSATION</span><h2>继续追问</h2><p>禾禾基于本次诊断继续了解田间管理问题</p></div>
+          <div><span class="eyebrow">CONTINUE THE CONVERSATION</span><h2>继续追问</h2><p>{{ result?.decision === 'CONFIRMED' ? '禾禾基于本次诊断继续了解田间管理问题' : '这次没有明确的缺素结论，也可以继续问禾禾' }}</p></div>
         </div>
         <button v-if="chatMessages.length" class="text-button" type="button" @click="resetChat">清空对话</button>
       </div>
       <div v-if="!chatMessages.length" class="chat-empty">
         <AgentMascot :size="54" state="idle" decorative />
-        <p>诊断完成了。追肥用量、施用时机或注意事项，都可以问我。</p>
+        <p>{{ result?.decision === 'CONFIRMED' ? '诊断完成了。追肥用量、施用时机或注意事项，都可以问我。' : '没有匹配到明确的缺素结论。可以把病斑形状、颜色和发生条件告诉我，我再帮你查。' }}</p>
       </div>
       <div v-if="chatMessages.length" class="chat-messages" aria-live="polite">
         <div v-for="(message, index) in chatMessages" :key="index" class="chat-message" :class="message.role">
