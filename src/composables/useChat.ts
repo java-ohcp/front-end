@@ -8,6 +8,28 @@ export interface ChatMessage {
   details?: Array<{ label: string; value: string }>
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null ? value as Record<string, unknown> : {}
+}
+
+/** 把 SSE 的结构化事件转成人话，避免在气泡里露出 JSON。 */
+export function formatDetail(event: string, data: unknown): string {
+  const record = asRecord(data)
+  if (event === 'candidate') {
+    const name = typeof record.elementName === 'string'
+      ? record.elementName
+      : typeof record.element === 'string' ? record.element : '未知元素'
+    const confidence = typeof record.confidence === 'number'
+      ? `，置信度 ${Math.round(record.confidence * 100)}%`
+      : ''
+    return `${name}${confidence}`
+  }
+  const story = typeof record.story === 'string' ? record.story : ''
+  const value = typeof record.value === 'string' ? record.value : ''
+  if (story && value) return `${story}：${value}`
+  return story || value || '暂无补充说明'
+}
+
 export function useChat(
   getSessionId: () => string | undefined,
   onSessionId?: (sessionId: string) => void,
@@ -40,7 +62,10 @@ export function useChat(
         }
         if (event === 'candidate' || event === 'sizheng') {
           answer.details ??= []
-          answer.details.push({ label: event === 'candidate' ? '候选补充' : '辨证信息', value: typeof data === 'string' ? data : JSON.stringify(data) })
+          answer.details.push({
+            label: event === 'candidate' ? '识别到的候选元素' : '辨证参考',
+            value: formatDetail(event, data),
+          })
         }
         if (event === 'error') answer.status = 'error'
         if (event === 'done') answer.status = undefined

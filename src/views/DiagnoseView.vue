@@ -215,7 +215,7 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
           <div class="message-body">
             <span class="message-role">{{ message.role === 'user' ? '你' : '禾禾' }}</span>
             <p>{{ message.text || (message.status === 'streaming' ? '正在组织回答…' : '') }}</p>
-            <details v-for="(detail, detailIndex) in message.details || []" :key="detailIndex" class="chat-detail"><summary>{{ detail.label }}</summary><pre>{{ detail.value }}</pre></details>
+            <details v-for="(detail, detailIndex) in message.details || []" :key="detailIndex" class="chat-detail"><summary>{{ detail.label }}</summary><p>{{ detail.value }}</p></details>
             <small v-if="message.status === 'interrupted'">已停止，保留已收到内容</small>
             <small v-if="message.status === 'error'">连接中断</small>
           </div>

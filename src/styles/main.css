@@ -271,7 +271,7 @@ a { color: inherit; }
 .message-body small { color: #a4805a; font-size: 12px; }
 .chat-detail { margin-top: 7px; padding: 7px 8px; border: 1px solid #edf1eb; border-radius: 5px; color: #71816f; background: #fff; font-size: 12px; }
 .chat-detail summary { cursor: pointer; }
-.chat-detail pre { overflow: auto; max-height: 160px; margin: 7px 0 0; color: #788576; font: 12px/1.6 'DM Mono', monospace; white-space: pre-wrap; word-break: break-word; }
+.chat-detail p { margin: 6px 0 0; color: #61745b; font-size: 12px; line-height: 1.75; }
 .chat-composer { display: flex; align-items: center; gap: 10px; }
 .chat-composer .el-input { flex: 1; }
 .chat-composer .el-input__wrapper { min-height: 46px; background: #fff !important; }
