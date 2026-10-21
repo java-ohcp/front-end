@@ -3,11 +3,14 @@ import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { fetchKnowledge } from '../api'
 import { confidencePercent, safeHttpUrl } from '../api/links'
 import KnowledgeCard from '../components/KnowledgeCard.vue'
+import PhotoUpload from '../components/PhotoUpload.vue'
 import { useDiagnosis, type DiagnosisForm } from '../composables/useDiagnosis'
 import { useChat } from '../composables/useChat'
 
 const form = reactive<DiagnosisForm>({ crop: '', symptomText: '', part: '', leafAge: '', env: '', soil: '', stage: '', mode: 'farmer' })
 const showMore = ref(false)
+const photoGeneration = ref(0)
+const photoCount = ref(0)
 const showEvidence = ref(false)
 const knowledgeVisible = ref(false)
 const knowledgeLoading = ref(false)
@@ -58,6 +61,8 @@ function useExample() {
   clearError()
 }
 function resetForm() {
+  photoGeneration.value++
+  photoCount.value = 0
   resetDiagnosis(); knowledgeController?.abort(); resetChat()
   Object.assign(form, { crop: '', symptomText: '', part: '', leafAge: '', env: '', soil: '', stage: '', mode: 'farmer' })
   knowledge.value = undefined; knowledgeLoading.value = false; knowledgeError.value = false
@@ -72,7 +77,7 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
       <div>
         <div class="eyebrow"><span class="eyebrow-line"></span> CROP HEALTH · 诊断台</div>
         <h1>从一片叶子，<em>读懂作物。</em></h1>
-        <p class="heading-copy">描述作物表现，获取有依据的营养诊断与管理建议。</p>
+        <p class="heading-copy">记录叶片与田间表现，结合照片观察，整理作物营养线索。</p>
       </div>
       <div class="season-stamp"><span>FIELD GUIDE</span><strong>01</strong><small>作物营养 · 识别</small></div>
     </div>
@@ -93,6 +98,9 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
           <el-input id="symptom-text" v-model="form.symptomText" type="textarea" :rows="5" maxlength="800" placeholder="例如：下部老叶开始泛黄，叶脉仍保持绿色……" />
           <div class="textarea-meta"><span>尽量描述颜色、位置和变化过程</span><span :class="{ 'count-warning': chars > 500 }">{{ chars }} / 500 字</span></div>
         </div>
+
+        <PhotoUpload :key="photoGeneration" @change="photoCount = $event.length" />
+        <div v-if="photoCount" class="photo-observe-tip">已添加 {{ photoCount }} 张观察照片。请在症状描述中写明叶片颜色、叶龄和异常部位；当前诊断仍基于文字。</div>
 
         <button class="disclosure-row" type="button" :aria-expanded="showMore" @click="showMore = !showMore">
           <span class="disclosure-symbol">＋</span><span><strong>补充观察信息</strong><small>提供更多细节，帮助准确判断</small></span><span class="disclosure-chevron" :class="{ open: showMore }">⌄</span>

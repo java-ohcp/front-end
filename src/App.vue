@@ -37,6 +37,9 @@ onBeforeUnmount(() => healthController?.abort())
         <RouterLink to="/" class="nav-link" :class="{ active: route.meta.nav === 'diagnose' }">
           <span class="nav-icon">◉</span><span>智能诊断</span><span class="nav-current">→</span>
         </RouterLink>
+        <RouterLink to="/analysis" class="nav-link" :class="{ active: route.meta.nav === 'analysis' }">
+          <span class="nav-icon">⌁</span><span>样本分析</span>
+        </RouterLink>
         <RouterLink to="/knowledge" class="nav-link" :class="{ active: route.meta.nav === 'knowledge' }">
           <span class="nav-icon">✳</span><span>营养知识</span>
         </RouterLink>
