@@ -28,6 +28,7 @@ export function useDiagnosis(form: ReactiveDiagnosisForm) {
   const activeCandidate = computed(() => result.value?.candidates?.[selectedIndex.value])
   const isNoMatch = computed(() => result.value?.decision === 'NO_MATCH')
   const isFollowUp = computed(() => result.value?.decision === 'NEED_MORE_INFO')
+  const isDiseaseRisk = computed(() => result.value?.decision === 'DISEASE_SUSPECTED')
 
   let diagnoseController: AbortController | undefined
   let adviceController: AbortController | undefined
@@ -115,8 +116,12 @@ export function useDiagnosis(form: ReactiveDiagnosisForm) {
         mode: nextForm.mode,
       }, controller.signal)
       if (controller.signal.aborted) return
-      if (!response || typeof response !== 'object' || !['CONFIRMED', 'NEED_MORE_INFO', 'NO_MATCH'].includes(response.decision)) {
+      if (!response || typeof response !== 'object' || !['CONFIRMED', 'NEED_MORE_INFO', 'NO_MATCH', 'DISEASE_SUSPECTED'].includes(response.decision)) {
         errorText.value = '收到暂不支持的结果格式，请稍后重试。'
+        return
+      }
+      if (response.decision === 'DISEASE_SUSPECTED' && !response.triage?.summary) {
+        errorText.value = '病害分流响应缺少说明，请重试或联系服务维护人员。'
         return
       }
       if (response.decision === 'CONFIRMED' && !response.candidates?.some((candidate) => typeof candidate?.element === 'string' && candidate.element.trim())) {
@@ -175,7 +180,7 @@ export function useDiagnosis(form: ReactiveDiagnosisForm) {
 
   return {
     loading, adviceLoading, adviceError, result, advice, selectedIndex, errorText, trace, retryAfterSeconds,
-    activeCandidate, isNoMatch, isFollowUp, runDiagnosis, loadAdvice, selectCandidate,
+    activeCandidate, isNoMatch, isFollowUp, isDiseaseRisk, runDiagnosis, loadAdvice, selectCandidate,
     switchMode, applyFollowUp, clearError, reset, dispose,
   }
 }

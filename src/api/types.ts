@@ -1,5 +1,5 @@
 export type AdviceMode = 'farmer' | 'pro'
-export type Decision = 'CONFIRMED' | 'NEED_MORE_INFO' | 'NO_MATCH'
+export type Decision = 'CONFIRMED' | 'NEED_MORE_INFO' | 'NO_MATCH' | 'DISEASE_SUSPECTED'
 export type DiagnoseField = 'part' | 'leafAge' | 'env' | 'soil' | 'stage'
 
 export interface DiagnoseRequest {
@@ -23,6 +23,7 @@ export interface DiagnosisCandidate {
 }
 
 export interface DiagnosisResponse {
+  triage?: DiseaseTriage | null
   requestId?: string
   sessionId?: string
   decision: Decision | string
@@ -31,6 +32,15 @@ export interface DiagnosisResponse {
   isDegraded?: boolean
   degradedMode?: string
   greenTip?: string
+}
+
+export interface DiseaseTriage {
+  category: string
+  summary: string
+  candidates: Array<{ id: string; name: string; matchedFeatures: string[] }>
+  questions: string[]
+  actions: string[]
+  sources: Array<{ title: string; url: string }>
 }
 
 export interface AdviceResponse {
@@ -76,9 +86,14 @@ export interface ApiEnvelope<T> {
 }
 
 export interface ChatRequest {
-  sessionId: string
+  sessionId?: string
   question: string
-  /** 本次诊断的上下文，追问时一并带上，避免后端把症状重新问一遍。 */
   crop?: string
   symptomText?: string
+  part?: string
+  leafAge?: string
+  env?: string
+  soil?: string
+  stage?: string
+  mode?: AdviceMode
 }

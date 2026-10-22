@@ -5,6 +5,7 @@ import { confidencePercent, safeHttpUrl } from '../api/links'
 import AgentMascot from '../components/AgentMascot.vue'
 import KnowledgeCard from '../components/KnowledgeCard.vue'
 import PhotoUpload from '../components/PhotoUpload.vue'
+import DiseaseTriageCard from '../components/DiseaseTriageCard.vue'
 import { useDiagnosis, type DiagnosisForm } from '../composables/useDiagnosis'
 import { useChat } from '../composables/useChat'
 
@@ -20,7 +21,7 @@ const knowledge = ref<Awaited<ReturnType<typeof fetchKnowledge>>>()
 let knowledgeController: AbortController | undefined
 const {
   loading, adviceLoading, adviceError, result, advice, selectedIndex, errorText, trace, retryAfterSeconds,
-  activeCandidate, isNoMatch, isFollowUp, runDiagnosis, loadAdvice, selectCandidate,
+  activeCandidate, isNoMatch, isFollowUp, isDiseaseRisk, runDiagnosis, loadAdvice, selectCandidate,
   switchMode, applyFollowUp, clearError, reset: resetDiagnosis, dispose: disposeDiagnosis,
 } = useDiagnosis(form)
 const {
@@ -29,7 +30,7 @@ const {
 } = useChat(
   () => result.value?.sessionId,
   (sessionId) => { if (result.value) result.value.sessionId = sessionId },
-  () => ({ crop: form.crop, symptomText: form.symptomText }),
+  () => ({ ...form }),
 )
 const chars = computed(() => form.symptomText.trim().length)
 
@@ -131,19 +132,21 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
         <div class="privacy-note"><span>⌁</span>信息仅用于本次诊断流程</div>
       </section>
 
+      <div class="diagnose-right-column">
       <section class="panel result-panel">
         <div class="panel-topline"><div><span class="step-label">STEP 02 / 02</span><h2>诊断与管理建议</h2></div><span class="result-status" :class="{ ready: result }"><i></i>{{ loading ? '分析中' : result ? '已返回结果' : '等待输入' }}</span></div>
         <div class="form-rule"></div>
 
         <div v-if="!result && !loading" class="result-empty">
-          <div class="empty-illustration"><span class="sun-disc"></span><span class="leaf-one">❧</span><span class="empty-ground"></span></div>
-          <span class="eyebrow">OBSERVE · UNDERSTAND</span>
-          <h3>每个症状，都是一条线索。</h3>
+          <AgentMascot :size="148" class="result-mascot" />
+          <h3>我是禾禾，在这里陪你观察。</h3>
           <p>填写左侧作物信息后，诊断结果与施肥建议会显示在这里。</p>
           <div class="empty-footnote"><span>✳</span> 如条件允许，请结合土壤检测与当地农技建议</div>
         </div>
 
-        <div v-else-if="loading && !result" class="result-loading"><span class="loading-orbit"></span><strong>正在分析症状</strong><small>正在整理作物信息与症状描述</small></div>
+        <div v-else-if="loading && !result" class="result-loading"><AgentMascot :size="128" state="thinking" /><strong>禾禾正在分析症状</strong><small>正在整理作物信息与症状描述</small></div>
+
+        <DiseaseTriageCard v-else-if="isDiseaseRisk && result?.triage" :triage="result.triage" />
 
         <div v-else-if="isFollowUp" class="followup-result">
           <span class="decision-badge need-info"><i></i> 需要更多信息</span>
@@ -192,38 +195,14 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
           <div class="green-tip"><span>✳</span><p>{{ result.greenTip || '合理施肥，关注地力，减少养分流失。' }}</p></div>
         </div>
       </section>
-    </div>
-
-    <section v-if="result?.sessionId && result.decision === 'CONFIRMED'" class="panel chat-panel">
-      <div class="chat-header">
-        <div class="chat-heading">
-          <AgentMascot :size="46" state="idle" decorative class="chat-mascot" />
-          <div><span class="eyebrow">CONTINUE THE CONVERSATION</span><h2>继续追问</h2><p>禾禾基于本次诊断继续了解田间管理问题</p></div>
-        </div>
-        <button v-if="chatMessages.length" class="text-button" type="button" @click="resetChat">清空对话</button>
-      </div>
-      <div v-if="!chatMessages.length" class="chat-empty">
-        <AgentMascot :size="54" state="idle" decorative />
-        <p>诊断完成了。追肥用量、施用时机或注意事项，都可以问我。</p>
-      </div>
-      <div v-if="chatMessages.length" class="chat-messages" aria-live="polite">
-        <div v-for="(message, index) in chatMessages" :key="index" class="chat-message" :class="message.role">
-          <span class="message-avatar" :class="{ 'mascot-avatar': message.role === 'assistant' }">
-            <template v-if="message.role === 'user'">我</template>
-            <AgentMascot v-else :size="24" :state="message.status === 'streaming' ? 'thinking' : 'idle'" decorative />
-          </span>
-          <div class="message-body">
-            <span class="message-role">{{ message.role === 'user' ? '你' : '禾禾' }}</span>
-            <p>{{ message.text || (message.status === 'streaming' ? '正在组织回答…' : '') }}</p>
-            <details v-for="(detail, detailIndex) in message.details || []" :key="detailIndex" class="chat-detail"><summary>{{ detail.label }}</summary><pre>{{ detail.value }}</pre></details>
-            <small v-if="message.status === 'interrupted'">已停止，保留已收到内容</small>
-            <small v-if="message.status === 'error'">连接中断</small>
-          </div>
-        </div>
-      </div>
+    <section class="panel chat-panel" aria-label="禾禾智能体">
+      <div class="chat-header"><div class="chat-heading"><AgentMascot :size="54" :state="loading || chatSending ? 'thinking' : 'idle'" class="chat-mascot" /><div><span class="eyebrow">HEHE · 禾禾陪你观察</span><h2>和禾禾聊聊</h2><p role="status">{{ loading ? '禾禾正在分析作物线索，你也可以继续补充情况。' : errorText ? '这次分析未完成，禾禾仍在这里，你可以继续提问或重试。' : result ? '无论是否找到明确原因，都可以继续向禾禾补充线索、提出问题。' : '我是禾禾，可以先告诉我作物名称和你观察到的变化。' }}</p></div></div><button v-if="chatMessages.length" class="text-button" type="button" @click="resetChat">清空对话</button></div>
+      <div v-if="chatMessages.length" class="chat-messages" aria-live="polite"><div v-for="(message, index) in chatMessages" :key="index" class="chat-message" :class="message.role"><span class="message-avatar" :class="{ 'mascot-avatar': message.role === 'assistant' }"><template v-if="message.role === 'user'">我</template><AgentMascot v-else :size="28" :state="message.status === 'streaming' ? 'thinking' : 'idle'" decorative /></span><div class="message-body"><span class="message-role">{{ message.role === 'user' ? '你' : '禾禾' }}</span><p>{{ message.text || (message.status === 'streaming' ? '正在组织回答…' : '') }}</p><details v-for="(detail, detailIndex) in message.details || []" :key="detailIndex" class="chat-detail"><summary>{{ detail.label }}</summary><pre>{{ detail.value }}</pre></details><small v-if="message.status === 'interrupted'">已停止，保留已收到内容</small><small v-if="message.status === 'error'">连接中断</small></div></div></div>
       <form class="chat-composer" @submit.prevent="sendChat"><el-input v-model="chatInput" placeholder="还有什么想了解的？" :disabled="chatSending" maxlength="300" @keydown.enter.exact.prevent="sendChat" /><button v-if="chatSending" class="stop-chat" type="button" @click="stopChat">停止</button><button v-else class="send-chat" type="submit" :disabled="!chatInput.trim()">发送 <span>↑</span></button></form>
-      <div class="chat-footnote">禾禾的回复由后端服务生成，请结合实际田间情况判断</div>
+      <div class="chat-footnote">回复由后端服务生成，请结合实际田间情况判断</div>
     </section>
+      </div>
+    </div>
 
     <el-drawer v-model="knowledgeVisible" title="营养元素科普" size="min(520px, 94vw)" destroy-on-close>
       <div v-if="knowledgeLoading" class="drawer-loading"><span class="button-spinner"></span>正在读取知识条目</div>

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 import type { DiagnosisResponse } from '../api'
-import { diagnose } from '../api'
+import { diagnose, fetchAdvice } from '../api'
 import { useDiagnosis, type DiagnosisForm } from './useDiagnosis'
 
 vi.mock('../api', async (importOriginal) => {
@@ -20,7 +20,22 @@ function followUp(requestId: string): DiagnosisResponse {
 }
 
 describe('useDiagnosis', () => {
-  beforeEach(() => vi.mocked(diagnose).mockReset())
+  beforeEach(() => { vi.mocked(diagnose).mockReset(); vi.mocked(fetchAdvice).mockReset() })
+
+  it('displays disease triage without fetching a fertilizer plan', async () => {
+    vi.mocked(diagnose).mockResolvedValue({ decision: 'DISEASE_SUSPECTED', candidates: [], triage: {
+      category: 'DISEASE_SUSPECTED', summary: '测试病害分流提示', candidates: [{id:'late-blight', name:'番茄晚疫病', matchedFeatures:['水渍状病斑','白色霉层']}],
+      questions: ['请补充照片与温湿情况'], actions: ['需进一步核实'], sources: [],
+    } })
+    const form = reactive<DiagnosisForm>({ crop: '番茄', symptomText: '水渍状病斑，叶背有白色霉层', part: '', leafAge: '', env: '', soil: '', stage: '', mode: 'farmer' })
+    const diagnosis = useDiagnosis(form)
+    await diagnosis.runDiagnosis()
+    expect(diagnosis.isDiseaseRisk.value).toBe(true)
+    expect(diagnosis.errorText.value).toBe('')
+    expect(diagnosis.advice.value).toBeUndefined()
+    expect(fetchAdvice).not.toHaveBeenCalled()
+    diagnosis.dispose()
+  })
 
   it('does not let an older response replace the latest diagnosis', async () => {
     const first = deferred<DiagnosisResponse>()
