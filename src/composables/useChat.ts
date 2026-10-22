@@ -8,6 +8,21 @@ export interface ChatMessage {
   details?: Array<{ label: string; value: string }>
 }
 
+/** Convert structured events into readable text instead of exposing raw JSON. */
+export function formatDetail(event: string, data: unknown): string {
+  const record = typeof data === 'object' && data !== null ? data as Record<string, unknown> : {}
+  if (event === 'candidate') {
+    const name = typeof record.elementName === 'string' ? record.elementName
+      : typeof record.element === 'string' ? record.element : '未知元素'
+    const confidence = typeof record.confidence === 'number' && Number.isFinite(record.confidence)
+      ? `，置信度 ${Math.round(record.confidence * 100)}%` : ''
+    return `${name}${confidence}`
+  }
+  const story = typeof record.story === 'string' ? record.story : ''
+  const value = typeof record.value === 'string' ? record.value : ''
+  return story && value ? `${story}：${value}` : story || value || '暂无补充说明'
+}
+
 export function useChat(getSessionId: () => string | undefined, onSessionId?: (sessionId: string) => void,
   getContext?: () => Omit<ChatRequest, 'question' | 'sessionId'>) {
   const chatMessages = ref<ChatMessage[]>([])
@@ -42,7 +57,7 @@ export function useChat(getSessionId: () => string | undefined, onSessionId?: (s
         }
         if (event === 'candidate' || event === 'sizheng') {
           answer.details ??= []
-          answer.details.push({ label: event === 'candidate' ? '候选补充' : '辨证信息', value: typeof data === 'string' ? data : JSON.stringify(data) })
+          answer.details.push({ label: event === 'candidate' ? '识别到的候选元素' : '辨证参考', value: formatDetail(event, data) })
         }
         if (event === 'error') answer.status = 'error'
         if (event === 'done') answer.status = undefined
