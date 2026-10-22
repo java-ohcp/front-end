@@ -86,6 +86,14 @@ export interface ApiEnvelope<T> {
 }
 
 export interface ChatRequest {
-  sessionId: string
+  sessionId?: string
   question: string
+  crop?: string
+  symptomText?: string
+  part?: string
+  leafAge?: string
+  env?: string
+  soil?: string
+  stage?: string
+  mode?: AdviceMode
 }

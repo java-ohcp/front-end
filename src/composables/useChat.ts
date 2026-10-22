@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { streamChat } from '../api'
+import { streamChat, type ChatRequest } from '../api'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
@@ -8,7 +8,8 @@ export interface ChatMessage {
   details?: Array<{ label: string; value: string }>
 }
 
-export function useChat(getSessionId: () => string | undefined, onSessionId?: (sessionId: string) => void) {
+export function useChat(getSessionId: () => string | undefined, onSessionId?: (sessionId: string) => void,
+  getContext?: () => Omit<ChatRequest, 'question' | 'sessionId'>) {
   const chatMessages = ref<ChatMessage[]>([])
   const chatInput = ref('')
   const chatSending = ref(false)
@@ -17,16 +18,22 @@ export function useChat(getSessionId: () => string | undefined, onSessionId?: (s
   async function send() {
     const question = chatInput.value.trim()
     const sessionId = getSessionId()
-    if (!question || chatSending.value || !sessionId) return
+    if (!question || chatSending.value) return
     chatMessages.value.push({ role: 'user', text: question })
-    const answer: ChatMessage = { role: 'assistant', text: '', status: 'streaming' }
-    chatMessages.value.push(answer)
+    chatMessages.value.push({ role: 'assistant', text: '', status: 'streaming' })
+    const answer = chatMessages.value[chatMessages.value.length - 1]!
     chatInput.value = ''
     chatSending.value = true
     const current = new AbortController()
     controller = current
     try {
-      await streamChat({ sessionId, question }, ({ event, data }) => {
+      const context = getContext?.() ?? {}
+      const supplement = `\n补充问题：${question}`
+      const symptomText = context.symptomText?.trim()
+        ? context.symptomText.trim().slice(0, Math.max(0, 500 - supplement.length)) + supplement
+        : question
+      await streamChat({ ...context, sessionId, question, symptomText }, ({ event, data }) => {
+        if (controller !== current || current.signal.aborted) return
         if (event === 'meta' && typeof data === 'object' && data && 'sessionId' in data && typeof data.sessionId === 'string') onSessionId?.(data.sessionId)
         if (event === 'token') {
           const chunk = data as { delta?: string; data?: { delta?: string } }
