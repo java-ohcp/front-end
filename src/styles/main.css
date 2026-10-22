@@ -253,6 +253,16 @@ a { color: inherit; }
 .no-match-note { line-height: 1.6; }
 
 .chat-panel { margin-top: 18px; padding: 20px 23px; }
+.diagnose-right-column { display: grid; gap: 17px; min-width: 0; }
+.diagnose-right-column > .result-panel { min-height: 0; }
+.diagnose-right-column > .chat-panel { margin-top: 0; min-width: 0; }
+.diagnose-right-column .result-empty { min-height: 280px; padding-block: 20px; }
+.result-mascot { flex: 0 0 auto; margin-bottom: 6px; }
+.diagnose-right-column .chat-header { gap: 12px; align-items: flex-start; }
+.diagnose-right-column .chat-heading { min-width: 0; }
+.diagnose-right-column .chat-header p { line-height: 1.7; }
+.diagnose-right-column .chat-header > button { flex-shrink: 0; }
+.diagnose-right-column .message-body { min-width: 0; overflow-wrap: anywhere; }
 .chat-header { display: flex; justify-content: space-between; align-items: center; }
 .chat-header h2 { margin: 5px 0 4px; color: #435544; font: 500 17px 'Noto Serif SC', serif; }
 .chat-header p { margin: 0; color: #707b70; font-size: 12px; }
