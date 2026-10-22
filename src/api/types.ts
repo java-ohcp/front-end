@@ -1,5 +1,5 @@
 export type AdviceMode = 'farmer' | 'pro'
-export type Decision = 'CONFIRMED' | 'NEED_MORE_INFO' | 'NO_MATCH'
+export type Decision = 'CONFIRMED' | 'NEED_MORE_INFO' | 'NO_MATCH' | 'DISEASE_SUSPECTED'
 export type DiagnoseField = 'part' | 'leafAge' | 'env' | 'soil' | 'stage'
 
 export interface DiagnoseRequest {
@@ -23,6 +23,7 @@ export interface DiagnosisCandidate {
 }
 
 export interface DiagnosisResponse {
+  triage?: DiseaseTriage | null
   requestId?: string
   sessionId?: string
   decision: Decision | string
@@ -31,6 +32,15 @@ export interface DiagnosisResponse {
   isDegraded?: boolean
   degradedMode?: string
   greenTip?: string
+}
+
+export interface DiseaseTriage {
+  category: string
+  summary: string
+  candidates: Array<{ id: string; name: string; matchedFeatures: string[] }>
+  questions: string[]
+  actions: string[]
+  sources: Array<{ title: string; url: string }>
 }
 
 export interface AdviceResponse {

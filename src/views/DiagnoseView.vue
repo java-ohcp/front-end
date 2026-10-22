@@ -4,6 +4,7 @@ import { fetchKnowledge } from '../api'
 import { confidencePercent, safeHttpUrl } from '../api/links'
 import KnowledgeCard from '../components/KnowledgeCard.vue'
 import PhotoUpload from '../components/PhotoUpload.vue'
+import DiseaseTriageCard from '../components/DiseaseTriageCard.vue'
 import { useDiagnosis, type DiagnosisForm } from '../composables/useDiagnosis'
 import { useChat } from '../composables/useChat'
 
@@ -19,7 +20,7 @@ const knowledge = ref<Awaited<ReturnType<typeof fetchKnowledge>>>()
 let knowledgeController: AbortController | undefined
 const {
   loading, adviceLoading, adviceError, result, advice, selectedIndex, errorText, trace, retryAfterSeconds,
-  activeCandidate, isNoMatch, isFollowUp, runDiagnosis, loadAdvice, selectCandidate,
+  activeCandidate, isNoMatch, isFollowUp, isDiseaseRisk, runDiagnosis, loadAdvice, selectCandidate,
   switchMode, applyFollowUp, clearError, reset: resetDiagnosis, dispose: disposeDiagnosis,
 } = useDiagnosis(form)
 const {
@@ -142,6 +143,8 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
         </div>
 
         <div v-else-if="loading && !result" class="result-loading"><span class="loading-orbit"></span><strong>正在分析症状</strong><small>正在整理作物信息与症状描述</small></div>
+
+        <DiseaseTriageCard v-else-if="isDiseaseRisk && result?.triage" :triage="result.triage" />
 
         <div v-else-if="isFollowUp" class="followup-result">
           <span class="decision-badge need-info"><i></i> 需要更多信息</span>
