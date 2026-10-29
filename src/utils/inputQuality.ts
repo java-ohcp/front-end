@@ -8,5 +8,13 @@ export function isLikelyGarbled(value: string): boolean {
   const letters = compact.filter((char) => /[\p{L}\p{N}]/u.test(char)).length
   if (letters / compact.length < 0.3) return true
   if (/^(.)\1{5,}$/u.test(compact.join(''))) return true
+  // Inspect runs individually so Chinese surrounding keyboard noise cannot hide it.
+  // Exclude URLs: their opaque identifiers are not symptom prose.
+  const prose = text.replace(/https?:\/\/[^\s]+/giu, '')
+  const runs = prose.match(/[a-z]+/giu) ?? []
+  if (runs.some((run) =>
+    /[bcdfghjklmnpqrstvwxz]{6,}/iu.test(run)
+    || (run.length >= 8 && /asdf|qwer|zxcv|hjkl/iu.test(run))
+  )) return true
   return /^(?:[a-z]*?(?:asdf|qwer|zxcv|hjkl)[a-z]*)$/iu.test(compact.join(''))
 }
