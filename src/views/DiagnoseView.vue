@@ -7,6 +7,7 @@ import KnowledgeCard from '../components/KnowledgeCard.vue'
 import PhotoUpload from '../components/PhotoUpload.vue'
 import DiseaseTriageCard from '../components/DiseaseTriageCard.vue'
 import { useDiagnosis, type DiagnosisForm } from '../composables/useDiagnosis'
+import { isLikelyGarbled } from '../utils/inputQuality'
 import { useChat } from '../composables/useChat'
 
 const form = reactive<DiagnosisForm>({ crop: '', symptomText: '', part: '', leafAge: '', env: '', soil: '', stage: '', mode: 'farmer' })
@@ -32,6 +33,7 @@ const {
   (sessionId) => { if (result.value) result.value.sessionId = sessionId },
   () => ({ ...form }),
 )
+const garbledInput = computed(() => isLikelyGarbled(form.symptomText))
 const chars = computed(() => form.symptomText.trim().length)
 
 function startDiagnosis() { resetChat(); void runDiagnosis() }
@@ -99,6 +101,7 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
         <div class="field-block symptom-field">
           <div class="label-row"><label for="symptom-text">症状描述 <span class="required-star">*</span></label><button class="example-link" type="button" @click="useExample">填入示例 ↗</button></div>
           <el-input id="symptom-text" v-model="form.symptomText" type="textarea" :rows="5" maxlength="800" placeholder="例如：下部老叶开始泛黄，叶脉仍保持绿色……" />
+          <el-alert v-if="garbledInput" class="input-quality-warning" title="输入内容可能包含乱码，请检查后描述作物的颜色、异常部位和变化过程。" type="warning" show-icon :closable="false" role="status" />
           <div class="textarea-meta"><span>尽量描述颜色、位置和变化过程</span><span :class="{ 'count-warning': chars > 500 }">{{ chars }} / 500 字</span></div>
         </div>
 
@@ -211,3 +214,7 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
     </el-drawer>
   </section>
 </template>
+
+<style scoped>
+.input-quality-warning { margin-top: 10px; background: #fff8e6; color: #946200; border: 1px solid #f2d38b; }
+</style>
