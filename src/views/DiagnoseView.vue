@@ -101,7 +101,7 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
         <div class="field-block symptom-field">
           <div class="label-row"><label for="symptom-text">症状描述 <span class="required-star">*</span></label><button class="example-link" type="button" @click="useExample">填入示例 ↗</button></div>
           <el-input id="symptom-text" v-model="form.symptomText" type="textarea" :rows="5" maxlength="800" placeholder="例如：下部老叶开始泛黄，叶脉仍保持绿色……" />
-          <el-alert v-if="garbledInput" class="input-quality-warning" title="输入内容可能包含乱码，请检查后描述作物的颜色、异常部位和变化过程。" type="warning" show-icon :closable="false" role="status" />
+          <div v-if="garbledInput" class="input-quality-warning" role="status" aria-live="polite"><span aria-hidden="true">⚠</span><span>输入内容可能包含乱码，请检查后描述作物的颜色、异常部位和变化过程。</span></div>
           <div class="textarea-meta"><span>尽量描述颜色、位置和变化过程</span><span :class="{ 'count-warning': chars > 500 }">{{ chars }} / 500 字</span></div>
         </div>
 
@@ -216,5 +216,5 @@ onBeforeUnmount(() => { disposeDiagnosis(); disposeChat(); knowledgeController?.
 </template>
 
 <style scoped>
-.input-quality-warning { margin-top: 10px; background: #fff8e6; color: #946200; border: 1px solid #f2d38b; }
+.input-quality-warning { display: flex; gap: 8px; padding: 12px 14px; border-radius: 8px; font-size: 14px; line-height: 1.6; margin-top: 10px; background: #fff8e6; color: #946200; border: 1px solid #f2d38b; }
 </style>

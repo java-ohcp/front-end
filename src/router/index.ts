@@ -3,6 +3,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
+    { path: '/ontology', name: 'ontology', component: () => import('../views/OntologyView.vue'), meta: { title: '本体推理', nav: 'ontology' } },
     { path: '/', name: 'diagnose', component: () => import('../views/DiagnoseView.vue'), meta: { title: '智能诊断', nav: 'diagnose' } },
     { path: '/analysis', name: 'analysis', component: () => import('../views/AnalysisView.vue'), meta: { title: '样本分析', nav: 'analysis' } },
     { path: '/knowledge', name: 'knowledge', component: () => import('../views/KnowledgeView.vue'), meta: { title: '营养知识库', nav: 'knowledge' } },

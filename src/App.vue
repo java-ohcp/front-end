@@ -8,6 +8,7 @@ const route = useRoute()
 const health = ref<HealthResponse>()
 const healthError = ref(false)
 let healthController: AbortController | undefined
+const healthy = computed(() => ['ok', 'up'].includes(health.value?.status?.toLowerCase() || ''))
 const activeTitle = computed(() => String(route.meta.title || '智能诊断'))
 
 async function checkHealth() {
@@ -44,6 +45,9 @@ onBeforeUnmount(() => healthController?.abort())
         <RouterLink to="/knowledge" class="nav-link" :class="{ active: route.meta.nav === 'knowledge' }">
           <span class="nav-icon">✳</span><span>营养知识</span>
         </RouterLink>
+        <RouterLink to="/ontology" class="nav-link" :class="{ active: route.meta.nav === 'ontology' }">
+          <span class="nav-icon">⋈</span><span>本体推理</span>
+        </RouterLink>
         <RouterLink to="/dashboard" class="nav-link" :class="{ active: route.meta.nav === 'dashboard' }">
           <span class="nav-icon">▥</span><span>服务看板</span>
         </RouterLink>
@@ -66,8 +70,8 @@ onBeforeUnmount(() => healthController?.abort())
           <span v-if="isMockEnabled()" class="environment-tag"><i></i>演示环境</span>
           <span v-else class="environment-tag real"><i></i>接口模式</span>
           <button class="health-chip" type="button" @click="checkHealth" :title="healthError ? '检查失败，点击重试' : '刷新服务状态'">
-            <span class="health-dot" :class="healthError ? 'is-error' : (health?.status === 'ok' ? 'is-ok' : 'is-waiting')"></span>
-            {{ healthError ? '状态未知' : health?.status === 'ok' ? '服务正常' : isMockEnabled() ? '演示服务' : '检查中' }}
+            <span class="health-dot" :class="healthError ? 'is-error' : (healthy ? 'is-ok' : 'is-waiting')"></span>
+            {{ healthError ? '状态未知' : healthy ? '服务正常' : isMockEnabled() ? '演示服务' : '检查中' }}
           </button>
           <div class="today-date">农事 · {{ new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' }) }}</div>
         </div>
